@@ -1,0 +1,7 @@
+{
+  "name": "ElectraTrade B2B E-Commerce",
+  "description": "A comprehensive B2B electronics e-commerce platform connecting manufacturers with electronics retailers. Features role-based access, bulk ordering systems, and inventory management.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
