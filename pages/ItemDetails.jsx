@@ -39,8 +39,8 @@ const ItemDetails = () => {
         }
     };
 
-    const currentTier = product.pricingTiers?.sort((a, b) => b.minQuantity - a.minQuantity).find(t => quantity >= t.minQuantity);
-    const currentPrice = currentTier ? currentTier.price : product.price;
+    // const currentTier = product.pricingTiers?.sort((a, b) => b.minQuantity - a.minQuantity).find(t => quantity >= t.minQuantity);
+    // const currentPrice = currentTier ? currentTier.price : product.price;
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-12">
@@ -77,83 +77,56 @@ const ItemDetails = () => {
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-200 space-y-6">
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Wholesale Price</p>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-slate-900 tracking-tight">${currentPrice.toLocaleString()}</span>
-                                    <span className="text-slate-400 font-medium">/ unit</span>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                {product.pricingTiers?.length > 0 && currentPrice < product.price && (
-                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-[10px] font-black uppercase">
-                                        Volume Savings Active
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {product.pricingTiers?.length > 0 && (
-                            <div className="grid grid-cols-3 gap-2">
-                                <div className={`p-3 rounded-xl border text-center ${currentPrice === product.price ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-200'}`}>
-                                    <p className="text-[9px] font-black uppercase mb-1 opacity-70">1-{product.pricingTiers[0].minQuantity - 1} Units</p>
-                                    <p className="font-bold">${product.price.toLocaleString()}</p>
-                                </div>
-                                {product.pricingTiers.map(tier => (
-                                    <div key={tier.minQuantity} className={`p-3 rounded-xl border text-center ${quantity >= tier.minQuantity ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-200'}`}>
-                                        <p className="text-[9px] font-black uppercase mb-1 opacity-70">{tier.minQuantity}+ Units</p>
-                                        <p className="font-bold">${tier.price.toLocaleString()}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="pt-6 border-t border-slate-200 flex gap-4">
-                            <div className="bg-white border border-slate-200 rounded-2xl flex items-center h-14">
-                                <button onClick={() => handleQuantityChange(-1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-50 rounded-l-2xl text-slate-400 hover:text-slate-900 transition-colors" disabled={quantity <= product.moq}>
-                                    <Icons.Minus className="w-4 h-4" />
-                                </button>
-                                <div className="w-16 text-center font-black text-lg">{quantity}</div>
-                                <button onClick={() => handleQuantityChange(1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-50 rounded-r-2xl text-slate-400 hover:text-slate-900 transition-colors" disabled={quantity >= product.stock}>
-                                    <Icons.Plus className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <button
-                                onClick={() => { addToCart({ productId: product.id, product, quantity }); }}
-                                className="flex-1 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={product.stock === 0}
-                            >
-                                {product.stock > 0 ? 'Add to Manifest' : 'Out of Stock'}
-                            </button>
-                        </div>
+                    {/* Pricing Tiers Removed - User Request */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Standard Wholesale Price</p>
+                        <p className="text-xl font-black text-slate-900">${product.price.toLocaleString()} <span className="text-xs text-slate-400 font-bold">/ unit</span></p>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-4">Technical Specifications</h3>
-                        <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Keeping Unit</p>
-                                <p className="font-bold text-slate-700">SKU-{product.id.substring(0, 8).toUpperCase()}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Harmonized System</p>
-                                <p className="font-bold text-slate-700">HSN: {product.hsnCode}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Certifications</p>
-                                <div className="flex gap-2">
-                                    {product.certifications?.map(c => (
-                                        <span key={c} className="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded border border-slate-200">{c}</span>
-                                    ))}
-                                </div>
+                    <div className="pt-6 border-t border-slate-200 flex gap-4">
+                        <div className="bg-white border border-slate-200 rounded-2xl flex items-center h-14">
+                            <button onClick={() => handleQuantityChange(-1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-50 rounded-l-2xl text-slate-400 hover:text-slate-900 transition-colors" disabled={quantity <= product.moq}>
+                                <Icons.Minus className="w-4 h-4" />
+                            </button>
+                            <div className="w-16 text-center font-black text-lg">{quantity}</div>
+                            <button onClick={() => handleQuantityChange(1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-50 rounded-r-2xl text-slate-400 hover:text-slate-900 transition-colors" disabled={quantity >= product.stock}>
+                                <Icons.Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => { addToCart({ productId: product.id, product, quantity }); }}
+                            className="flex-1 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={product.stock === 0}
+                        >
+                            {product.stock > 0 ? 'Add to Manifest' : 'Out of Stock'}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-4">Technical Specifications</h3>
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Keeping Unit</p>
+                            <p className="font-bold text-slate-700">SKU-{product.id.substring(0, 8).toUpperCase()}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Harmonized System</p>
+                            <p className="font-bold text-slate-700">HSN: {product.hsnCode}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Certifications</p>
+                            <div className="flex gap-2">
+                                {product.certifications?.map(c => (
+                                    <span key={c} className="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded border border-slate-200">{c}</span>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     );
 };
 

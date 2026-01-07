@@ -18,11 +18,9 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+  /* Simplified Pricing - Tiered logic removed per user request */
   const getEffectivePrice = (product, qty) => {
-    if (!product.pricingTiers || product.pricingTiers.length === 0) return product.price;
-    const sortedTiers = [...product.pricingTiers].sort((a, b) => b.minQuantity - a.minQuantity);
-    const tier = sortedTiers.find(t => qty >= t.minQuantity);
-    return tier ? tier.price : product.price;
+    return product.price;
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (getEffectivePrice(item.product, item.quantity) * item.quantity), 0);
@@ -79,11 +77,7 @@ const CartPage = () => {
                     <h3 className="text-lg font-black text-slate-900 leading-tight">{item.product.name}</h3>
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">
                       HSN: {item.product.hsnCode} &bull; Unit: ${getEffectivePrice(item.product, item.quantity)}
-                      {getEffectivePrice(item.product, item.quantity) < item.product.price && (
-                        <span className="ml-2 text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                          Saved ${(item.product.price - getEffectivePrice(item.product, item.quantity))} / unit
-                        </span>
-                      )}
+                      {/* Savings display removed */}
                     </p>
                   </div>
                   <button onClick={() => removeFromCart(item.productId)} className="text-slate-300 hover:text-red-500 transition-colors"><Icons.Trash2 className="w-5 h-5" /></button>

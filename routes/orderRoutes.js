@@ -81,6 +81,21 @@ router.post('/', protect, authorize('SHOP_OWNER'), async (req, res) => {
   // Update User Credit if NET_30
   if (paymentMethod === 'NET_30') {
     await User.findByIdAndUpdate(req.user._id, { $inc: { creditUsed: totalAmount } });
+  } else {
+    // DIRECT / UPI Payment (Marketplace Split)
+    const platformFeePercentage = 0.05;
+    const platformFee = totalAmount * platformFeePercentage;
+    const manufacturerCredit = totalAmount - platformFee;
+
+    // 1. Credit Admin (Platform Fee)
+    // Finding Admin (Assuming specific email or first admin found)
+    const admin = await User.findOne({ role: 'ADMIN' });
+    if (admin) {
+      await User.findByIdAndUpdate(admin._id, { $inc: { walletBalance: platformFee } });
+    }
+
+    // 2. Credit Manufacturer (Net Amount)
+    await User.findByIdAndUpdate(createdOrder.manufacturer, { $inc: { walletBalance: manufacturerCredit } });
   }
 
   res.status(201).json(createdOrder);

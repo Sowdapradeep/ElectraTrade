@@ -47,108 +47,114 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <header className={`bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm transition-all duration-300 ${isManufacturer ? 'border-t-4 border-t-slate-800' :
-        isAdmin ? 'border-t-4 border-t-indigo-600' :
-          'border-t-4 border-t-blue-600'
-        }`}>
-        <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center h-16 gap-6">
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-            <div className={`p-1.5 rounded-lg transition-colors ${isManufacturer ? 'bg-slate-800 text-white' :
-              isAdmin ? 'bg-indigo-600 text-white' :
-                'bg-blue-600 text-white'
-              }`}>
-              <Icons.Box className="w-6 h-6" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black text-slate-900 tracking-tight leading-none group-hover:text-blue-600 transition-colors">{APP_NAME}</span>
-              {auth.user && (
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  {auth.user.role.replace('_', ' ')} PORTAL
-                </span>
+      {/* Floating Glass Navbar */}
+      <div className="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 mb-8 pointer-events-none">
+        <header className={`mx-auto max-w-7xl glass-dock rounded-2xl transition-all duration-300 pointer-events-auto px-2 ${isManufacturer ? 'border-t-4 border-t-slate-800' :
+          isAdmin ? 'border-t-4 border-t-indigo-600' :
+            'border-t-4 border-t-blue-600'
+          }`}>
+          <div className="w-full px-4 flex items-center h-16 gap-6">
+            <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
+              <div className={`p-2 rounded-xl transition-all shadow-lg group-hover:scale-110 ${isManufacturer ? 'bg-slate-800 text-white' :
+                isAdmin ? 'bg-indigo-600 text-white' :
+                  'bg-gradient-to-br from-blue-600 to-indigo-600 text-white'
+                }`}>
+                <Icons.Box className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-black text-slate-900 tracking-tight leading-none font-display group-hover:text-blue-600 transition-colors">{APP_NAME}</span>
+                {auth.user && (
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                    {auth.user.role.replace('_', ' ')} PORTAL
+                  </span>
+                )}
+              </div>
+            </Link>
+
+            {showProcurementTools && (
+              <div className="flex-1 max-w-xl relative group ml-8 hidden md:block">
+                <input
+                  type="text"
+                  placeholder="Search components or brands..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    if (location.pathname !== '/') navigate('/');
+                  }}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-100/50 border border-slate-200/50 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                />
+                <svg className="w-5 h-5 absolute left-3 top-2.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            )}
+
+            <nav className="hidden lg:flex items-center gap-1 flex-shrink-0 ml-auto mr-4">
+              {isManufacturer && (
+                <>
+                  <Link to="/" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all">Dashboard</Link>
+                  <Link to="/orders" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all">Fulfillment</Link>
+                </>
+              )}
+              {isShopOwner && (
+                <>
+                  <Link to="/" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-all">Marketplace</Link>
+                  <Link to="/orders" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-all">Orders</Link>
+                </>
+              )}
+              {isAdmin && (
+                <>
+                  <Link to="/admin/verification" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all">Queue</Link>
+                  <Link to="/admin/stats" className="px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all">Stats</Link>
+                </>
+              )}
+            </nav>
+
+            <div className="flex items-center gap-4 flex-shrink-0">
+              {auth.user ? (
+                <div className="flex items-center gap-3">
+                  {isShopOwner && (
+                    <Link to="/cart" className="relative p-2.5 bg-slate-50 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 group">
+                      <Icons.ShoppingCart className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                      {cart.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in shadow-md">
+                          {cart.length}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                  <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+                  <Link to="/profile" className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-all group">
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors">{auth.user.companyName}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-1">My Account</span>
+                    </div>
+                    <div className="w-8 h-8 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center font-black text-slate-600 text-xs shadow-inner">
+                      {auth.user.companyName.charAt(0)}
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => { logout(); navigate('/login'); }}
+                    className="p-2.5 text-slate-400 hover:text-white hover:bg-red-500 rounded-xl transition-all shadow-sm hover:shadow-red-200"
+                    title="Logout"
+                  >
+                    <Icons.XCircle className="w-6 h-6" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-blue-600 px-4 py-2 transition-colors">Sign In</Link>
+                  <Link to="/register" className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-lg active:scale-95">Start Trading</Link>
+                </div>
               )}
             </div>
-          </Link>
-
-          {showProcurementTools && (
-            <div className="flex-1 max-w-xl relative group ml-2">
-              <input
-                type="text"
-                placeholder="Search components or brands..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  if (location.pathname !== '/') navigate('/');
-                }}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-2 border-transparent rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-sm font-medium"
-              />
-              <svg className="w-5 h-5 absolute left-3 top-2.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          )}
-
-          <nav className="hidden lg:flex items-center gap-8 flex-shrink-0 ml-auto mr-4">
-            {isManufacturer && (
-              <>
-                <Link to="/" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">Dashboard</Link>
-                <Link to="/orders" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">Fulfillment</Link>
-              </>
-            )}
-            {isShopOwner && (
-              <>
-                <Link to="/" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors">Marketplace</Link>
-                <Link to="/orders" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors">Orders</Link>
-              </>
-            )}
-            {isAdmin && (
-              <>
-                <Link to="/admin/verification" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Verification Queue</Link>
-                <Link to="/admin/stats" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Platform Stats</Link>
-              </>
-            )}
-          </nav>
-
-          <div className="flex items-center gap-4 flex-shrink-0">
-            {auth.user ? (
-              <div className="flex items-center gap-4">
-                {isShopOwner && (
-                  <Link to="/cart" className="relative p-2.5 bg-slate-50 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95">
-                    <Icons.ShoppingCart className="w-6 h-6" />
-                    {cart.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in">
-                        {cart.length}
-                      </span>
-                    )}
-                  </Link>
-                )}
-                <div className="h-8 w-px bg-slate-200 hidden sm:block" />
-                <Link to="/profile" className="hidden sm:flex flex-col items-end hover:opacity-70 transition-opacity">
-                  <span className="text-sm font-black text-slate-900 leading-none">{auth.user.companyName}</span>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-1">My Account</span>
-                </Link>
-                <button
-                  onClick={() => { logout(); navigate('/login'); }}
-                  className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                  title="Logout"
-                >
-                  <Icons.XCircle className="w-6 h-6" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-blue-600 px-4 py-2 transition-colors">Sign In</Link>
-                <Link to="/register" className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95">Start Trading</Link>
-              </div>
-            )}
           </div>
-        </div>
-
-
-      </header>
+        </header>
+      </div>
 
       {showProcurementTools && (
-        <div className="bg-white border-b border-slate-200 sticky top-16 z-40 overflow-x-auto no-scrollbar">
-          <div className="w-full px-4 sm:px-6 lg:px-8 h-9 flex items-center gap-4 min-w-max">
+        <div className="mx-auto max-w-7xl px-4 sticky top-24 z-40 overflow-x-auto no-scrollbar pointer-events-none">
+          <div className="bg-white/80 backdrop-blur-md border border-white/50 shadow-sm rounded-xl px-4 h-12 flex items-center gap-4 min-w-max pointer-events-auto">
             <button
               onClick={() => {
                 setSelectedCategory('All');
@@ -175,7 +181,7 @@ const Layout = ({ children }) => {
                   }`}
               >
                 {c}
-                <span className={`absolute -bottom-3 left-0 w-full h-0.5 bg-blue-600 transition-transform origin-left ${selectedCategory === c ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+                <span className={`absolute -bottom-4 left-0 w-full h-0.5 bg-blue-600 transition-transform origin-left ${selectedCategory === c ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
               </button>
             ))}
           </div>

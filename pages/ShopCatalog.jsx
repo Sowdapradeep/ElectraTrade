@@ -112,57 +112,58 @@ const ShopCatalog = () => {
       </aside>
 
       <div className="flex-1 space-y-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredProducts.map(p => (
-            <div key={p.id} className="bg-white rounded-[20px] border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
-              <div className="h-36 bg-slate-50 overflow-hidden relative">
+            <div key={p.id} className="group relative glass-panel rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20">
+              <div className="relative aspect-[4/3] overflow-hidden bg-white">
                 <Link to={`/product/${p.id}`} className="block w-full h-full">
                   <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                 </Link>
-                <div className="absolute top-4 left-4 flex gap-2">
-                  {p.certifications?.map((c) => (
-                    <span key={c} className="bg-slate-900/80 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded uppercase">{c}</span>
-                  ))}
+                <div className="absolute top-3 right-3 flex gap-2">
+                  {/* Stock Badge */}
+                  {p.stock < 10 && (
+                    <span className="bg-red-500/90 backdrop-blur text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-widest shadow-lg">
+                      Only {p.stock} Left
+                    </span>
+                  )}
+                </div>
+                {/* Overlay Action Button on Hover */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 pointer-events-none group-hover:pointer-events-auto">
+                  <button
+                    onClick={() => addToCart({ productId: p.id, quantity: p.moq, product: p })}
+                    className="bg-white text-slate-900 w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-xl hover:scale-110 active:scale-95"
+                    title="Add to Cart"
+                  >
+                    <Icons.ShoppingCart className="w-5 h-5" />
+                  </button>
+                  <Link
+                    to={`/product/${p.id}`}
+                    className="bg-white text-slate-900 w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-xl hover:scale-110 active:scale-95"
+                    title="View Details"
+                  >
+                    <Icons.ArrowRight className="w-5 h-5" />
+                  </Link>
                 </div>
               </div>
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-1.5">
-                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{p.brand}</span>
-                  <button onClick={() => toggleCompare(p)} className={`text-[8px] font-black uppercase tracking-widest hover:text-blue-600 ${comparing.find(item => item.id === p.id) ? 'text-blue-600' : 'text-slate-400'}`}>
-                    {comparing.find(item => item.id === p.id) ? 'Selected' : '+ Compare'}
-                  </button>
-                </div>
-                <h3 className="font-bold text-slate-900 mb-3 text-sm leading-tight line-clamp-2">{p.name}</h3>
 
-                {p.pricingTiers && p.pricingTiers.length > 0 && (
-                  <div className="mb-3 bg-green-50 rounded-lg p-2 border border-green-100">
-                    <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Volume Pricing</p>
-                    <div className="space-y-0.5">
-                      {p.pricingTiers.map((tier, idx) => (
-                        <div key={idx} className="flex justify-between text-[9px] font-medium text-slate-600">
-                          <span>{tier.minQuantity}+</span>
-                          <span className="text-slate-900 font-bold">${tier.price.toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
+              <div className="p-5">
+                <div className="mb-3 flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1 block">
+                      {p.category.toUpperCase()}
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[2.5em]">{p.name}</h3>
                   </div>
-                )}
-                <div className="mt-auto space-y-3">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Wholesale Unit</p>
-                      <p className="text-xl font-black text-slate-900">${p.price.toLocaleString()}</p>
-                    </div>
-                    <Tooltip text="Minimum Order Quantity">
-                      <span className="text-[9px] font-bold text-slate-400 cursor-help border-b border-dashed border-slate-300">MOQ: {p.moq}u</span>
-                    </Tooltip>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-100">
+                  {/* Volume Pricing Removed */}
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wide flex items-center gap-1 cursor-help justify-end">
+                      MOQ <Tooltip text="Minimum Order Quantity required for wholesale pricing" />
+                    </span>
+                    <span className="text-sm font-bold text-slate-700">{p.moq} Units</span>
                   </div>
-                  <button
-                    onClick={() => handleAddToCart(p)}
-                    className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95"
-                  >
-                    Add to Cart
-                  </button>
                 </div>
               </div>
             </div>
