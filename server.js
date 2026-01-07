@@ -23,6 +23,36 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', require('./routes/paymentRoutes'));
+
+// Socket.io Setup
+const http = require('http');
+const { Server } = require("socket.io");
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('User Connected:', socket.id);
+
+  socket.on('join_room', (data) => {
+    socket.join(data);
+    console.log(`User with ID: ${socket.id} joined room: ${data}`);
+  });
+
+  socket.on('send_message', (data) => {
+    socket.to(data.room).emit('receive_message', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User Disconnected', socket.id);
+  });
+});
+
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
@@ -48,7 +78,7 @@ const connectDB = async () => {
 // Only listen if not in Vercel environment (local dev)
 if (require.main === module) {
   connectDB().then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   });
 } else {
   // For Vercel, we need to ensure DB is connected before handling request

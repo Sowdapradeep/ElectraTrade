@@ -279,6 +279,23 @@ export const api = {
     }
   },
 
+  payments: {
+    process: async (amount, paymentMethod, cardDetails) => {
+      return request('/payments/process', {
+        method: 'POST',
+        body: JSON.stringify({ amount, paymentMethod, cardDetails })
+      }, () => {
+        // Fallback success
+        return {
+          id: 'mock_txn_' + Date.now(),
+          status: 'COMPLETED',
+          amount,
+          method: paymentMethod
+        };
+      });
+    }
+  },
+
   users: {
     getPartnerDetails: async (id) => {
       return request(`/admin/users/${id}`, {}, () => {

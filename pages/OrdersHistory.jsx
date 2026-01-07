@@ -1,4 +1,6 @@
 
+
+import { generateInvoice } from '../services/InvoiceGenerator';
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../App';
@@ -69,10 +71,16 @@ const OrdersHistory = () => {
                         </div>
                         <div className="flex gap-3">
                            <button
+                              onClick={() => generateInvoice(order)}
+                              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                           >
+                              Download PDF
+                           </button>
+                           <button
                               onClick={() => setShowInvoice(order)}
                               className="px-6 py-3 border-2 border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest hover:border-blue-600 hover:text-blue-600 transition-all"
                            >
-                              View Invoice
+                              View Details
                            </button>
                            {auth.user.role === UserRole.SHOP_OWNER && order.paymentStatus === PaymentStatus.UNPAID && (
                               <button
@@ -113,9 +121,14 @@ const OrdersHistory = () => {
                         <p className="text-xs font-bold text-slate-400 uppercase">Tax Invoice No: {showInvoice.invoiceNumber}</p>
                         <p className="text-xs font-bold text-slate-400 uppercase">Date: {new Date(showInvoice.createdAt).toLocaleString()}</p>
                      </div>
-                     <button onClick={() => setShowInvoice(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <Icons.XCircle className="w-8 h-8 text-slate-300" />
-                     </button>
+                     <div className="flex gap-4">
+                        <button onClick={() => generateInvoice(showInvoice)} className="p-2 hover:bg-slate-100 rounded-full transition-colors group" title="Download PDF">
+                           <Icons.PackagePlus className="w-6 h-6 text-slate-400 group-hover:text-blue-600" />
+                        </button>
+                        <button onClick={() => setShowInvoice(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                           <Icons.XCircle className="w-8 h-8 text-slate-300" />
+                        </button>
+                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-12">

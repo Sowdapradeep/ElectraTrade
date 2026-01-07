@@ -6,16 +6,18 @@ import { Icons } from '../constants';
 import { api } from '../services/api';
 import { PaymentMethod, GST_RATE } from '../types';
 
+import PaymentModal from '../components/PaymentModal';
+
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const { auth } = useAuth();
   const [checkingOut, setCheckingOut] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState(PaymentMethod.DIRECT);
+  // const [selectedMethod, setSelectedMethod] = useState(PaymentMethod.DIRECT); // Removed as we only enforce Online Payment
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
 
   const getEffectivePrice = (product, qty) => {
     if (!product.pricingTiers || product.pricingTiers.length === 0) return product.price;
-    // Sort tiers by minQuantity descending to find the highest applicable tier
     const sortedTiers = [...product.pricingTiers].sort((a, b) => b.minQuantity - a.minQuantity);
     const tier = sortedTiers.find(t => qty >= t.minQuantity);
     return tier ? tier.price : product.price;
@@ -25,16 +27,23 @@ const CartPage = () => {
   const gst = subtotal * GST_RATE;
   const total = subtotal + gst;
 
-  const handleCheckout = async () => {
+  const handleInitiateCheckout = () => {
     if (!auth.user) return;
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = async (paymentResult) => {
+    setShowPaymentModal(false);
     setCheckingOut(true);
     try {
-      await api.orders.create(auth.user.id, cart, selectedMethod);
+      // Create order with PaymentMethod.DIRECT (Online)
+      // We can pass the payment ID if the backend supported it, but for now just create the order
+      await api.orders.create(auth.user.id, cart, PaymentMethod.DIRECT);
       clearCart();
-      alert(`Success! Order placed using ${selectedMethod.replace('_', ' ')} logic.`);
+      alert(`Success! Payment Completed & Order Placed. Transaction ID: ${paymentResult.id}`);
       navigate('/orders');
     } catch (err) {
-      alert(err.message || 'Failed to place order.');
+      alert(err.message || 'Payment successful but order creation failed.');
     } finally {
       setCheckingOut(false);
     }
@@ -93,45 +102,33 @@ const CartPage = () => {
 
       <div className="lg:col-span-1 space-y-8">
         <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-xl space-y-8 sticky top-28">
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Settlement Options</h2>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Order Summary</h2>
 
-          <div className="space-y-4">
-            <button
-              onClick={() => setSelectedMethod(PaymentMethod.DIRECT)}
-              className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.DIRECT ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
-            >
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 01</p>
-              <p className="text-sm font-black text-slate-900 uppercase">Immediate Settlement</p>
-              <p className="text-[10px] font-bold text-slate-500 mt-1">Standard Bank Transfer / Credit Card</p>
-            </button>
-            <button
-              onClick={() => setSelectedMethod(PaymentMethod.NET_30)}
-              className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.NET_30 ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
-            >
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 02</p>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-slate-900 uppercase">Net-30 Trade Credit</p>
-                <Icons.CheckCircle2 className={`w-4 h-4 ${selectedMethod === PaymentMethod.NET_30 ? 'text-blue-600' : 'text-slate-200'}`} />
-              </div>
-              <p className="text-[10px] font-bold text-slate-500 mt-1">Pay within 30 days. Uses network limit.</p>
-            </button>
-          </div>
+          {/* Removed Net 30 Options as per request */}
 
-          <div className="space-y-4 border-t border-slate-100 pt-8">
+          <div className="space-y-4 border-t border-slate-100 pt-8 mt-0">
             <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
             <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Tax (GST 18%)</span><span>${gst.toLocaleString()}</span></div>
             <div className="flex justify-between text-2xl font-black text-slate-900 pt-4"><span>Total Amount</span><span>${total.toLocaleString()}</span></div>
           </div>
 
           <button
-            onClick={handleCheckout}
+            onClick={handleInitiateCheckout}
             disabled={checkingOut}
-            className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
+            className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 transition-all active:scale-95 disabled:opacity-50"
           >
-            {checkingOut ? 'Authenticating Trade...' : 'Initialize Procurement'}
+            {checkingOut ? 'Processing...' : 'Proceed to Payment'}
           </button>
         </div>
       </div>
+
+      {showPaymentModal && (
+        <PaymentModal
+          amount={total}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };

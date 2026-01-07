@@ -16,6 +16,7 @@ import OrdersHistory from './pages/OrdersHistory';
 import AdminPanel from './pages/AdminPanel';
 import ManufacturerProfile from './pages/ManufacturerProfile';
 import ProfilePage from './pages/ProfilePage';
+import ChatWidget from './components/ChatWidget';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -183,6 +184,14 @@ const Layout = ({ children }) => {
           {children}
         </main>
       </div>
+
+      {auth.user && (
+        <ChatWidget
+          roomId={auth.user.role === 'ADMIN' ? 'global' : auth.user.id}
+          username={auth.user.name}
+          role={auth.user.role}
+        />
+      )}
 
       <footer className="bg-slate-950 text-slate-400 py-20">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
