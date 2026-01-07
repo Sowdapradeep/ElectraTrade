@@ -7,6 +7,7 @@ import { api } from '../services/api';
 import { PaymentMethod, GST_RATE } from '../types';
 
 import PaymentModal from '../components/PaymentModal';
+import { useToast } from '../components/ToastProvider';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -15,6 +16,7 @@ const CartPage = () => {
   // const [selectedMethod, setSelectedMethod] = useState(PaymentMethod.DIRECT); // Removed as we only enforce Online Payment
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const getEffectivePrice = (product, qty) => {
     if (!product.pricingTiers || product.pricingTiers.length === 0) return product.price;
@@ -40,10 +42,10 @@ const CartPage = () => {
       // We can pass the payment ID if the backend supported it, but for now just create the order
       await api.orders.create(auth.user.id, cart, PaymentMethod.DIRECT);
       clearCart();
-      alert(`Success! Payment Completed & Order Placed. Transaction ID: ${paymentResult.id}`);
+      showToast(`Success! Order Placed. Transaction: ${paymentResult.id}`, 'success');
       navigate('/orders');
     } catch (err) {
-      alert(err.message || 'Payment successful but order creation failed.');
+      showToast(err.message || 'Payment successful but order creation failed.', 'error');
     } finally {
       setCheckingOut(false);
     }

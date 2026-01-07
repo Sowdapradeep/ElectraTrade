@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart, useAuth, useCatalog } from '../App';
 import { Icons, CATEGORIES } from '../constants';
+import Tooltip from '../components/Tooltip';
+import { useToast } from '../components/ToastProvider';
 
 const ShopCatalog = () => {
   const [products, setProducts] = useState([]);
@@ -18,9 +20,10 @@ const ShopCatalog = () => {
     certification: 'All'
   });
 
-  const { addToCart, cart } = useCart();
+  const { addToCart } = useCart();
   const { auth } = useAuth();
   const { search, selectedCategory } = useCatalog();
+  const { showToast } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -47,6 +50,11 @@ const ShopCatalog = () => {
 
   const toggleCompare = (p) => {
     setComparing(prev => prev.find(item => item.id === p.id) ? prev.filter(item => item.id !== p.id) : [...prev, p].slice(0, 3));
+  };
+
+  const handleAddToCart = (p) => {
+    addToCart({ productId: p.id, product: p, quantity: p.moq });
+    showToast('Added to cart', 'success');
   };
 
   return (
@@ -145,10 +153,12 @@ const ShopCatalog = () => {
                       <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Wholesale Unit</p>
                       <p className="text-xl font-black text-slate-900">${p.price.toLocaleString()}</p>
                     </div>
-                    <span className="text-[9px] font-bold text-slate-400">MOQ: {p.moq}u</span>
+                    <Tooltip text="Minimum Order Quantity">
+                      <span className="text-[9px] font-bold text-slate-400 cursor-help border-b border-dashed border-slate-300">MOQ: {p.moq}u</span>
+                    </Tooltip>
                   </div>
                   <button
-                    onClick={() => addToCart({ productId: p.id, product: p, quantity: p.moq })}
+                    onClick={() => handleAddToCart(p)}
                     className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95"
                   >
                     Add to Cart
@@ -177,7 +187,7 @@ const ShopCatalog = () => {
             {comparing.length < 3 && <div className="border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-[10px] font-black text-slate-300 uppercase">Select more</div>}
           </div>
           <button
-            onClick={() => alert("Redirecting to detailed technical matrix...")}
+            onClick={() => showToast("Redirecting to detailed technical matrix...", 'info')}
             className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
           >
             Compare Specs

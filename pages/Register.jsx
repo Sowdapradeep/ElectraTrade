@@ -1,51 +1,39 @@
-
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { api } from '../services/api';
 import { useAuth } from '../App';
-import { UserRole } from '../types';
+import { useToast } from '../components/ToastProvider';
 import { Icons, APP_NAME } from '../constants';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    // Fix: cast the initial value as any to satisfy compiler
-    role: UserRole.SHOP_OWNER,
-    companyName: '',
-    address: ''
+    name: '', email: '', password: '', role: 'SHOP_OWNER', companyName: '', gstNumber: '', address: ''
   });
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const { register } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(formData);
-      setSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
+      const data = await api.auth.register(formData);
+      // Auto login or update layout handled by App via db/auth state
+      if (data && data.token) {
+        setAuth({ user: data.user, token: data.token, loading: false });
+        navigate('/'); // Redirect to Dashboard/Home
+        showToast('Account created! Welcome to ElectraTrade.', 'success');
+      } else {
+        navigate('/login');
+        showToast('Registration successful. Please login.', 'success');
+      }
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Icons.CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
-          <h2 className="text-2xl font-bold text-slate-900">Registration Successful!</h2>
-          <p className="text-slate-600 max-w-sm">
-            Your application is submitted. Admins will review your company details for approval. Redirecting to login...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12">

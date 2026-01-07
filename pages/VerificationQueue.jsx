@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Icons } from '../constants';
+import { useToast } from '../components/ToastProvider';
 
 const VerificationQueue = () => {
     const [loading, setLoading] = useState(true);
     const [allUsers, setAllUsers] = useState([]);
     const [inspectedPartner, setInspectedPartner] = useState(null);
     const [partnerView, setPartnerView] = useState('all'); // 'all' or 'audit'
+    const { showToast } = useToast();
 
     const loadData = async () => {
         setLoading(true);
@@ -29,8 +31,9 @@ const VerificationQueue = () => {
             await api.admin.approveUser(userId);
             setInspectedPartner(null);
             await loadData();
+            showToast('Partner verified successfully', 'success');
         } catch (err) {
-            alert('Verification failed.');
+            showToast('Verification failed', 'error');
         }
     };
 
@@ -40,8 +43,9 @@ const VerificationQueue = () => {
             await api.admin.rejectUser(userId);
             setInspectedPartner(null);
             await loadData();
+            showToast('Application rejected', 'info');
         } catch (err) {
-            alert('Operation failed.');
+            showToast('Operation failed', 'error');
         }
     };
 

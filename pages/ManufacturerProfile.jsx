@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { useCart, useAuth } from '../App';
 import { Icons } from '../constants';
 import { UserRole } from '../types';
+import { useToast } from '../components/ToastProvider';
 
 const ManufacturerProfile = () => {
   const { id } = useParams();
@@ -50,51 +51,35 @@ const ManufacturerProfile = () => {
     loadProfile();
   }, [id]);
 
-  const handleAddToCart = (product) => {
-    if (!auth.user) {
-      navigate('/login');
+  const handleAddToCart = (p) => {
+    if (auth.user?.role !== 'SHOP_OWNER') {
+      showToast("Only Retailers can add products to cart.", 'error');
       return;
     }
-    if (auth.user.role !== UserRole.SHOP_OWNER) {
-      alert("Only Retailers can add products to cart.");
-      return;
-    }
-    addToCart({
-      productId: product.id,
-      product,
-      quantity: product.moq
-    });
+    addToCart({ productId: p.id, product: p, quantity: p.moq });
+    showToast("Added to procurement list", 'success');
   };
 
-  const handleBuyNow = async (product) => {
-    if (!auth.user) {
-      navigate('/login');
+  const handleBuyNow = async (p) => {
+    if (auth.user?.role !== 'SHOP_OWNER') {
+      showToast("Only Retailers can initiate direct purchases.", 'error');
       return;
     }
-    if (auth.user.role !== UserRole.SHOP_OWNER) {
-      alert("Only Retailers can initiate direct purchases.");
-      return;
-    }
-
-    if (product.stock < product.moq) {
-      alert("Insufficient stock for the minimum order quantity.");
+    if (p.stock < p.moq) {
+      showToast("Insufficient stock for the minimum order quantity.", 'error');
       return;
     }
 
-    const confirmPurchase = window.confirm(`Direct Purchase: Proceed to order the minimum quantity (${product.moq} units) of ${product.name} for $${(product.price * product.moq).toFixed(2)}?`);
-    if (!confirmPurchase) return;
+    if (!window.confirm(`Confirm immediate PO for ${p.moq} units of ${p.name}?`)) return;
 
-    setPurchasingId(product.id);
+    setPurchasingId(p.id);
     try {
-      await api.orders.create(auth.user.id, [{
-        productId: product.id,
-        product,
-        quantity: product.moq
-      }]);
-      alert('Order placed successfully!');
+      // Mock Direct Order
+      await api.orders.create(auth.user.id, [{ productId: p.id, product: p, quantity: p.moq }], 'DIRECT');
+      showToast('Order placed successfully!', 'success');
       navigate('/orders');
     } catch (err) {
-      alert('Checkout failed. Please try again.');
+      showToast('Checkout failed. Please try again.', 'error');
     } finally {
       setPurchasingId(null);
     }
@@ -227,8 +212,8 @@ const ManufacturerProfile = () => {
                           onClick={() => handleBuyNow(p)}
                           disabled={p.stock < p.moq || isPurchasing}
                           className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black transition-all text-xs uppercase tracking-widest ${p.stock < p.moq
-                              ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                              : 'bg-slate-900 text-white hover:bg-blue-600 shadow-xl active:scale-95'
+                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                            : 'bg-slate-900 text-white hover:bg-blue-600 shadow-xl active:scale-95'
                             }`}
                         >
                           {isPurchasing ? 'Securing...' : 'Buy Now'}
@@ -237,10 +222,10 @@ const ManufacturerProfile = () => {
                           onClick={() => handleAddToCart(p)}
                           disabled={p.stock < p.moq}
                           className={`flex items-center justify-center p-4 rounded-2xl transition-all ${inCart
-                              ? 'bg-green-100 text-green-600'
-                              : p.stock < p.moq
-                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                                : 'bg-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 active:scale-95'
+                            ? 'bg-green-100 text-green-600'
+                            : p.stock < p.moq
+                              ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                              : 'bg-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 active:scale-95'
                             }`}
                         >
                           {inCart ? <Icons.CheckCircle2 className="w-6 h-6" /> : <Icons.ShoppingCart className="w-6 h-6" />}

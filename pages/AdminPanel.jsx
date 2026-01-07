@@ -2,11 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Icons } from '../constants';
+import { useToast } from '../components/ToastProvider';
 import { UserRole, OrderStatus, PaymentStatus } from '../types';
 
 
 
 const AdminPanel = () => {
+   /* 
+   * NOTE: We have extracted Verification and Stats into their own pages (VerificationQueue.jsx, PlatformStats.jsx).
+   * This component now mainly serves as a container or legacy fallback.
+   * However, for the 'Settings' tab which might still be here, we should update alerts.
+   */
+   const { showToast } = useToast();
    const [activeTab, setActiveTab] = useState('OVERVIEW');
    const [loading, setLoading] = useState(true);
 
@@ -48,33 +55,36 @@ const AdminPanel = () => {
       loadData();
    }, []);
 
-   const saveSettings = async () => {
+   const handleUpdateSettings = async (e) => {
+      e.preventDefault();
       try {
          await api.admin.updateSettings(settings);
-         alert('Platform configuration updated.');
+         showToast('Platform configuration updated', 'success');
       } catch (err) {
-         alert('Failed to update settings.');
+         showToast('Failed to update settings', 'error');
       }
    };
 
    const handleApprove = async (userId) => {
       try {
          await api.admin.approveUser(userId);
-         setInspectedPartner(null);
-         await loadData();
+         setInspectedPartner(null); // Assuming inspectedPartner should be set to null, not inspectedUser
+         loadData();
+         showToast('User verified successfully', 'success');
       } catch (err) {
-         alert('Verification failed.');
+         showToast('Verification failed', 'error');
       }
    };
 
    const handleReject = async (userId) => {
-      if (!window.confirm("Reject this partner application?")) return;
+      if (!window.confirm("Reject this partner application?")) return; // Kept original confirm message
       try {
          await api.admin.rejectUser(userId);
-         setInspectedPartner(null);
-         await loadData();
+         setInspectedPartner(null); // Assuming inspectedPartner should be set to null, not inspectedUser
+         loadData();
+         showToast('User rejected', 'info');
       } catch (err) {
-         alert('Operation failed.');
+         showToast('Operation failed', 'error');
       }
    };
 
@@ -252,8 +262,8 @@ const AdminPanel = () => {
                            <button
                               onClick={() => setPartnerView('all')}
                               className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${partnerView === 'all'
-                                    ? 'bg-white text-indigo-600 shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
+                                 ? 'bg-white text-indigo-600 shadow-sm'
+                                 : 'text-slate-400 hover:text-slate-600'
                                  }`}
                            >
                               All Partners
@@ -261,8 +271,8 @@ const AdminPanel = () => {
                            <button
                               onClick={() => setPartnerView('audit')}
                               className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${partnerView === 'audit'
-                                    ? 'bg-white text-indigo-600 shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600'
+                                 ? 'bg-white text-indigo-600 shadow-sm'
+                                 : 'text-slate-400 hover:text-slate-600'
                                  }`}
                            >
                               Compliance Audit

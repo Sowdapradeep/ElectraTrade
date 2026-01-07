@@ -7,13 +7,9 @@ import { UserRole } from '../types';
 
 const ProfilePage = () => {
    const { auth, setAuth } = useAuth();
+   const { showToast } = useToast();
    const [loading, setLoading] = useState(false);
-   const [formData, setFormData] = useState({
-      name: auth.user?.name || '',
-      companyName: auth.user?.companyName || '',
-      address: auth.user?.address || '',
-      gstNumber: auth.user?.gstNumber || '',
-   });
+   const [user, setUser] = useState({ ...auth.user });
 
    const isManufacturer = auth.user?.role === UserRole.MANUFACTURER;
    const isShopOwner = auth.user?.role === UserRole.SHOP_OWNER;
@@ -22,11 +18,13 @@ const ProfilePage = () => {
       e.preventDefault();
       setLoading(true);
       try {
-         const updatedUser = await api.auth.updateProfile(auth.user.id, formData);
-         setAuth((prev) => ({ ...prev, user: updatedUser }));
-         alert('Business profile updated.');
+         await api.users.updateProfile(user.id, user);
+         // Update local session
+         const updated = { ...auth, user: { ...auth.user, ...user } };
+         setAuth(updated);
+         showToast('Business profile updated.', 'success');
       } catch (err) {
-         alert(err.message || 'Failed.');
+         showToast(err.message || 'Failed.', 'error');
       } finally {
          setLoading(false);
       }

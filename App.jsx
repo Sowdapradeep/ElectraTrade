@@ -20,6 +20,7 @@ import ItemDetails from './pages/ItemDetails';
 import ManufacturerProfile from './pages/ManufacturerProfile';
 import ProfilePage from './pages/ProfilePage';
 import ChatWidget from './components/ChatWidget';
+import { ToastProvider } from './components/ToastProvider';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -310,33 +311,35 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={{ auth, login, logout, register, setAuth }}>
-      <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, updateQuantity }}>
-        <CatalogContext.Provider value={{ search, setSearch, selectedCategory, setSelectedCategory }}>
-          <Router>
-            <Layout>
-              <Routes>
-                <Route path="/" element={
-                  auth.user?.role === UserRole.MANUFACTURER ? <ManufacturerDashboard /> :
-                    auth.user?.role === UserRole.ADMIN ? <AdminPanel /> :
-                      <ShopCatalog />
-                } />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/catalog" element={<ShopCatalog />} />
-                <Route path="/product/:id" element={<ItemDetails />} />
-                <Route path="/manufacturer/:id" element={<ManufacturerProfile />} />
-                <Route path="/profile" element={auth.user ? <ProfilePage /> : <Navigate to="/login" />} />
-                <Route path="/cart" element={auth.user?.role === UserRole.SHOP_OWNER ? <CartPage /> : <Navigate to="/login" />} />
-                <Route path="/orders" element={auth.user ? <OrdersHistory /> : <Navigate to="/login" />} />
-                <Route path="/admin" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
-                <Route path="/admin/verification" element={auth.user?.role === UserRole.ADMIN ? <VerificationQueue /> : <Navigate to="/" />} />
-                <Route path="/admin/stats" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </Layout>
-          </Router>
-        </CatalogContext.Provider>
-      </CartContext.Provider>
+      <ToastProvider>
+        <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, updateQuantity }}>
+          <CatalogContext.Provider value={{ search, setSearch, selectedCategory, setSelectedCategory }}>
+            <Router>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={
+                    auth.user?.role === UserRole.MANUFACTURER ? <ManufacturerDashboard /> :
+                      auth.user?.role === UserRole.ADMIN ? <AdminPanel /> :
+                        <ShopCatalog />
+                  } />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/catalog" element={<ShopCatalog />} />
+                  <Route path="/product/:id" element={<ItemDetails />} />
+                  <Route path="/manufacturer/:id" element={<ManufacturerProfile />} />
+                  <Route path="/profile" element={auth.user ? <ProfilePage /> : <Navigate to="/login" />} />
+                  <Route path="/cart" element={auth.user?.role === UserRole.SHOP_OWNER ? <CartPage /> : <Navigate to="/login" />} />
+                  <Route path="/orders" element={auth.user ? <OrdersHistory /> : <Navigate to="/login" />} />
+                  <Route path="/admin" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
+                  <Route path="/admin/verification" element={auth.user?.role === UserRole.ADMIN ? <VerificationQueue /> : <Navigate to="/" />} />
+                  <Route path="/admin/stats" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Layout>
+            </Router>
+          </CatalogContext.Provider>
+        </CartContext.Provider>
+      </ToastProvider>
     </AuthContext.Provider>
   );
 };

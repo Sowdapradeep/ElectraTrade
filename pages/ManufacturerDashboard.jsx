@@ -4,9 +4,11 @@ import { api } from '../services/api';
 import { useAuth } from '../App';
 import { Icons, CATEGORIES } from '../constants';
 import { OrderStatus } from '../types';
+import { useToast } from '../components/ToastProvider';
 
 const ManufacturerDashboard = () => {
   const { auth } = useAuth();
+  const { showToast } = useToast();
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [prediction, setPrediction] = useState('');
@@ -30,18 +32,24 @@ const ManufacturerDashboard = () => {
   const loadData = async () => {
     if (!auth.user) return;
     setLoading(true);
-    const [pData, oData] = await Promise.all([
-      api.products.getAll(),
-      api.orders.getByUser(auth.user.id, auth.user.role)
-    ]);
-    const mProducts = pData.filter((p) => p.manufacturerId === auth.user.id);
-    setProducts(mProducts);
-    setOrders(oData);
+    try {
+      const [pData, oData] = await Promise.all([
+        api.products.getAll(),
+        api.orders.getByUser(auth.user.id, auth.user.role)
+      ]);
+      const mProducts = pData.filter((p) => p.manufacturerId === auth.user.id);
+      setProducts(mProducts);
+      setOrders(oData);
 
-    // Get AI Prediction
-    const aiText = await api.ai.predictDemand(auth.user.id);
-    setPrediction(aiText);
-    setLoading(false);
+      // Get AI Prediction
+      const aiText = await api.ai.predictDemand(auth.user.id);
+      setPrediction(aiText);
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err);
+      showToast('Failed to load dashboard data.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -57,7 +65,7 @@ const ManufacturerDashboard = () => {
 
     // Validation
     if (!newProduct.name || !newProduct.brand || !newProduct.price || !newProduct.stock || !newProduct.moq) {
-      alert('Please fill in all required fields');
+      showToast('Please fill in all required fields', 'error');
       return;
     }
 
@@ -71,7 +79,7 @@ const ManufacturerDashboard = () => {
         manufacturerId: auth.user.id
       });
 
-      alert('Product added successfully!');
+      showToast('Product added successfully!', 'success');
       setShowAddProduct(false);
       setNewProduct({
         name: '',
@@ -86,7 +94,7 @@ const ManufacturerDashboard = () => {
       });
       await loadData();
     } catch (err) {
-      alert('Failed to add product. Please try again.');
+      showToast('Failed to add product. Please try again.', 'error');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -370,8 +378,8 @@ const ManufacturerDashboard = () => {
                         type="button"
                         onClick={() => toggleCertification(cert)}
                         className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${newProduct.certifications.includes(cert)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                           }`}
                       >
                         {cert}
