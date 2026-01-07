@@ -12,12 +12,13 @@ const orderSchema = mongoose.Schema({
   subtotal: { type: Number, required: true },
   gst: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
+  platformFee: { type: Number, required: true, default: 0 },
   paymentMethod: { type: String, enum: ['DIRECT', 'NET_30'], required: true },
   paymentStatus: { type: String, enum: ['UNPAID', 'PAID', 'OVERDUE'], default: 'UNPAID' },
-  status: { 
-    type: String, 
-    enum: ['PENDING', 'APPROVED', 'SHIPPED', 'DELIVERED', 'CANCELLED'], 
-    default: 'PENDING' 
+  status: {
+    type: String,
+    enum: ['PENDING', 'APPROVED', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
+    default: 'PENDING'
   },
   invoiceNumber: { type: String, unique: true },
   trackingId: { type: String },

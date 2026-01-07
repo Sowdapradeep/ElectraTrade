@@ -10,6 +10,23 @@ router.get('/', async (req, res) => {
   res.json(products);
 });
 
+// Get single product by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).populate('manufacturer', 'companyName email');
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get products by manufacturer
 router.get('/manufacturer/:id', async (req, res) => {
   const products = await Product.find({ manufacturer: req.params.id });

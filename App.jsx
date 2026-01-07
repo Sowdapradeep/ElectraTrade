@@ -14,6 +14,9 @@ import ShopCatalog from './pages/ShopCatalog';
 import CartPage from './pages/CartPage';
 import OrdersHistory from './pages/OrdersHistory';
 import AdminPanel from './pages/AdminPanel';
+import VerificationQueue from './pages/VerificationQueue';
+import PlatformStats from './pages/PlatformStats';
+import ItemDetails from './pages/ItemDetails';
 import ManufacturerProfile from './pages/ManufacturerProfile';
 import ProfilePage from './pages/ProfilePage';
 import ChatWidget from './components/ChatWidget';
@@ -98,8 +101,8 @@ const Layout = ({ children }) => {
             )}
             {isAdmin && (
               <>
-                <Link to="/admin" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Verification Queue</Link>
-                <Link to="/" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Platform Stats</Link>
+                <Link to="/admin/verification" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Verification Queue</Link>
+                <Link to="/admin/stats" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-colors">Platform Stats</Link>
               </>
             )}
           </nav>
@@ -320,11 +323,14 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/catalog" element={<ShopCatalog />} />
+                <Route path="/product/:id" element={<ItemDetails />} />
                 <Route path="/manufacturer/:id" element={<ManufacturerProfile />} />
                 <Route path="/profile" element={auth.user ? <ProfilePage /> : <Navigate to="/login" />} />
                 <Route path="/cart" element={auth.user?.role === UserRole.SHOP_OWNER ? <CartPage /> : <Navigate to="/login" />} />
                 <Route path="/orders" element={auth.user ? <OrdersHistory /> : <Navigate to="/login" />} />
-                <Route path="/admin" element={auth.user?.role === UserRole.ADMIN ? <AdminPanel /> : <Navigate to="/" />} />
+                <Route path="/admin" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
+                <Route path="/admin/verification" element={auth.user?.role === UserRole.ADMIN ? <VerificationQueue /> : <Navigate to="/" />} />
+                <Route path="/admin/stats" element={auth.user?.role === UserRole.ADMIN ? <PlatformStats /> : <Navigate to="/" />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Layout>

@@ -235,6 +235,13 @@ export const api = {
     getAll: async () => {
       return request('/products', {}, () => db.getProducts());
     },
+    getById: async (id) => {
+      return request(`/products/${id}`, {}, () => {
+        const p = db.getProducts().find((p) => p.id === id);
+        if (!p) throw new Error('Product not found');
+        return p;
+      });
+    },
     getByManufacturer: async (id) => {
       return request(`/products/manufacturer/${id}`, {}, () => {
         return db.getProducts().filter((p) => p.manufacturerId === id);

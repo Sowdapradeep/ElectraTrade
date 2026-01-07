@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart, useAuth, useCatalog } from '../App';
 import { Icons, CATEGORIES } from '../constants';
@@ -107,7 +108,9 @@ const ShopCatalog = () => {
           {filteredProducts.map(p => (
             <div key={p.id} className="bg-white rounded-[20px] border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
               <div className="h-36 bg-slate-50 overflow-hidden relative">
-                <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
+                <Link to={`/product/${p.id}`} className="block w-full h-full">
+                  <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
+                </Link>
                 <div className="absolute top-4 left-4 flex gap-2">
                   {p.certifications?.map((c) => (
                     <span key={c} className="bg-slate-900/80 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded uppercase">{c}</span>
