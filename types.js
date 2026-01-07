@@ -24,5 +24,9 @@ export const PaymentMethod = {
   NET_30: 'NET_30' // Pay in 30 days
 };
 
-export const PLATFORM_COMMISSION_RATE = 0.05; 
+export const PLATFORM_COMMISSION_RATE = 0.05;
 export const GST_RATE = 0.18; // 18% total
+
+
+// Interfaces removed for JS conversion
+

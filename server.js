@@ -38,7 +38,7 @@ const PORT = process.env.PORT || 5000;
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/electratrade');
-    console.log('MongoDB Connected Successfully');
+    console.log('MongoDB Connected Successfully: ' + (process.env.MONGO_URI || 'mongodb://localhost:27017/electratrade'));
   } catch (err) {
     console.error('MongoDB Connection Error:', err.message);
     process.exit(1);

@@ -13,7 +13,15 @@ const CartPage = () => {
   const [selectedMethod, setSelectedMethod] = useState(PaymentMethod.DIRECT);
   const navigate = useNavigate();
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const getEffectivePrice = (product, qty) => {
+    if (!product.pricingTiers || product.pricingTiers.length === 0) return product.price;
+    // Sort tiers by minQuantity descending to find the highest applicable tier
+    const sortedTiers = [...product.pricingTiers].sort((a, b) => b.minQuantity - a.minQuantity);
+    const tier = sortedTiers.find(t => qty >= t.minQuantity);
+    return tier ? tier.price : product.price;
+  };
+
+  const subtotal = cart.reduce((sum, item) => sum + (getEffectivePrice(item.product, item.quantity) * item.quantity), 0);
   const gst = subtotal * GST_RATE;
   const total = subtotal + gst;
 
@@ -25,7 +33,7 @@ const CartPage = () => {
       clearCart();
       alert(`Success! Order placed using ${selectedMethod.replace('_', ' ')} logic.`);
       navigate('/orders');
-    } catch (err: any) {
+    } catch (err) {
       alert(err.message || 'Failed to place order.');
     } finally {
       setCheckingOut(false);
@@ -58,7 +66,14 @@ const CartPage = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-lg font-black text-slate-900 leading-tight">{item.product.name}</h3>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">HSN: {item.product.hsnCode} &bull; Unit: ${item.product.price}</p>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">
+                      HSN: {item.product.hsnCode} &bull; Unit: ${getEffectivePrice(item.product, item.quantity)}
+                      {getEffectivePrice(item.product, item.quantity) < item.product.price && (
+                        <span className="ml-2 text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                          Saved ${(item.product.price - getEffectivePrice(item.product, item.quantity))} / unit
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <button onClick={() => removeFromCart(item.productId)} className="text-slate-300 hover:text-red-500 transition-colors"><Icons.Trash2 className="w-5 h-5" /></button>
                 </div>
@@ -68,7 +83,7 @@ const CartPage = () => {
                     <span className="px-5 text-sm font-black w-14 text-center">{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-3 hover:bg-slate-200 text-slate-600"><Icons.Plus className="w-4 h-4" /></button>
                   </div>
-                  <span className="text-xl font-black text-slate-900">${(item.product.price * item.quantity).toLocaleString()}</span>
+                  <span className="text-xl font-black text-slate-900">${(getEffectivePrice(item.product, item.quantity) * item.quantity).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -79,36 +94,36 @@ const CartPage = () => {
       <div className="lg:col-span-1 space-y-8">
         <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-xl space-y-8 sticky top-28">
           <h2 className="text-xl font-black text-slate-900 tracking-tight">Settlement Options</h2>
-          
+
           <div className="space-y-4">
-             <button 
-               onClick={() => setSelectedMethod(PaymentMethod.DIRECT)}
-               className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.DIRECT ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
-             >
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 01</p>
-                <p className="text-sm font-black text-slate-900 uppercase">Immediate Settlement</p>
-                <p className="text-[10px] font-bold text-slate-500 mt-1">Standard Bank Transfer / Credit Card</p>
-             </button>
-             <button 
-               onClick={() => setSelectedMethod(PaymentMethod.NET_30)}
-               className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.NET_30 ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
-             >
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 02</p>
-                <div className="flex items-center justify-between">
-                   <p className="text-sm font-black text-slate-900 uppercase">Net-30 Trade Credit</p>
-                   <Icons.CheckCircle2 className={`w-4 h-4 ${selectedMethod === PaymentMethod.NET_30 ? 'text-blue-600' : 'text-slate-200'}`} />
-                </div>
-                <p className="text-[10px] font-bold text-slate-500 mt-1">Pay within 30 days. Uses network limit.</p>
-             </button>
+            <button
+              onClick={() => setSelectedMethod(PaymentMethod.DIRECT)}
+              className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.DIRECT ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
+            >
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 01</p>
+              <p className="text-sm font-black text-slate-900 uppercase">Immediate Settlement</p>
+              <p className="text-[10px] font-bold text-slate-500 mt-1">Standard Bank Transfer / Credit Card</p>
+            </button>
+            <button
+              onClick={() => setSelectedMethod(PaymentMethod.NET_30)}
+              className={`w-full p-6 rounded-2xl border-2 text-left transition-all ${selectedMethod === PaymentMethod.NET_30 ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
+            >
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Method 02</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-black text-slate-900 uppercase">Net-30 Trade Credit</p>
+                <Icons.CheckCircle2 className={`w-4 h-4 ${selectedMethod === PaymentMethod.NET_30 ? 'text-blue-600' : 'text-slate-200'}`} />
+              </div>
+              <p className="text-[10px] font-bold text-slate-500 mt-1">Pay within 30 days. Uses network limit.</p>
+            </button>
           </div>
 
           <div className="space-y-4 border-t border-slate-100 pt-8">
-             <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
-             <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Tax (GST 18%)</span><span>${gst.toLocaleString()}</span></div>
-             <div className="flex justify-between text-2xl font-black text-slate-900 pt-4"><span>Total Amount</span><span>${total.toLocaleString()}</span></div>
+            <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
+            <div className="flex justify-between text-xs font-bold text-slate-500 uppercase"><span>Tax (GST 18%)</span><span>${gst.toLocaleString()}</span></div>
+            <div className="flex justify-between text-2xl font-black text-slate-900 pt-4"><span>Total Amount</span><span>${total.toLocaleString()}</span></div>
           </div>
 
-          <button 
+          <button
             onClick={handleCheckout}
             disabled={checkingOut}
             className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"

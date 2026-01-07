@@ -15,7 +15,11 @@ const productSchema = mongoose.Schema({
     required: true,
     ref: 'User'
   },
-  specifications: { type: Map, of: String }
+  specifications: { type: Map, of: String },
+  pricingTiers: [{
+    minQuantity: { type: Number, required: true },
+    price: { type: Number, required: true }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

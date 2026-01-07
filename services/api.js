@@ -10,9 +10,9 @@ const BASE_URL = '/api';
  * Attempts to call the real backend. If the backend is unreachable or returns an error,
  * it executes a fallback function using local storage (db.ts).
  */
-const request = async (path: string, options: RequestInit = {}, fallback: () => any) => {
+const request = async (path, options = {}, fallback) => {
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), 2000); // Faster 2s timeout for snappier fallback
+  const id = setTimeout(() => controller.abort(), 10000); // Increased timeout to 10s to avoid premature fallback
 
   try {
     const session = db.getSession();
@@ -42,7 +42,7 @@ const request = async (path: string, options: RequestInit = {}, fallback: () => 
     const data = await response.json();
 
     // Deeply map MongoDB _id to standard 'id' for UI consistency
-    const deepMap = (obj: any): any => {
+    const deepMap = (obj) => {
       if (!obj || typeof obj !== 'object') return obj;
       if (Array.isArray(obj)) return obj.map(deepMap);
       const newObj = { ...obj };
@@ -56,7 +56,7 @@ const request = async (path: string, options: RequestInit = {}, fallback: () => 
     };
 
     return deepMap(data);
-  } catch (error: any) {
+  } catch (error) {
     clearTimeout(id);
 
     // Fallback for reachability issues or timeout
@@ -72,23 +72,28 @@ const request = async (path: string, options: RequestInit = {}, fallback: () => 
 
 export const api = {
   auth: {
-    login: async (email: string) => {
-      return request('/auth/login', {
+    login: async (email) => {
+      const data = await request('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password: 'password_is_demo' })
       }, () => {
         const users = db.getUsers();
-        const user = users.find((u: any) => u.email === email);
+        const user = users.find((u) => u.email === email);
         if (!user) throw new Error('User not found in local records.');
         if (!user.isApproved && user.role !== UserRole.ADMIN) throw new Error('Account pending approval.');
         const session = { user, token: 'mock-jwt-token' };
-        db.setSession(session);
+        db.setSession(session); // Save session in fallback
         return session;
       });
+      // Save session from backend response
+      if (data && data.token) {
+        db.setSession(data);
+      }
+      return data;
     },
     logout: () => db.setSession(null),
-    register: async (data: any) => {
-      return request('/auth/register', {
+    register: async (data) => {
+      const response = await request('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ ...data, password: 'password_is_demo' })
       }, () => {
@@ -101,29 +106,50 @@ export const api = {
           creditUsed: 0
         };
         db.setUsers([...users, newUser]);
-        return newUser;
+        return { user: newUser, token: 'mock-jwt-token' }; // Return consistent structure in fallback
       });
+
+      // Save session from backend response (if auto-login after register)
+      if (response && response.token) {
+        db.setSession(response);
+      } else if (response && response.user) {
+        // If backend only returns user (no token), we might need to login separately or handle it.
+        // Assuming backend returns { user, token } same as login based on authController
+        // If it doesn't, we might need a separate login call, but let's assume it does for now 
+        // or that the user is redirected to login. 
+        // Looking at authController: registerUser returns { user, token }
+        db.setSession(response);
+      }
+      return response;
     },
-    updateProfile: async (userId: string, updates: any) => {
-      return request('/auth/profile', {
+    updateProfile: async (userId, updates) => {
+      const updatedUser = await request('/auth/profile', {
         method: 'PUT',
         body: JSON.stringify(updates)
       }, () => {
         const users = db.getUsers();
-        const updatedUsers = users.map((u: any) => u.id === userId ? { ...u, ...updates } : u);
+        const updatedUsers = users.map((u) => u.id === userId ? { ...u, ...updates } : u);
         db.setUsers(updatedUsers);
-        const user = updatedUsers.find((u: any) => u.id === userId);
+        const user = updatedUsers.find((u) => u.id === userId);
         const session = db.getSession();
         if (session?.user.id === userId) {
           db.setSession({ ...session, user });
         }
         return user;
       });
+
+      // Update local session if the updated profile matches current user
+      const session = db.getSession();
+      if (session && session.user.id === userId) {
+        // Merge updates into session user
+        db.setSession({ ...session, user: { ...session.user, ...updatedUser } });
+      }
+      return updatedUser;
     }
   },
 
   orders: {
-    create: async (shopOwnerId: string, cartItems: any[], method: string = PaymentMethod.DIRECT) => {
+    create: async (shopOwnerId, cartItems, method = PaymentMethod.DIRECT) => {
       return request('/orders', {
         method: 'POST',
         body: JSON.stringify({
@@ -161,21 +187,21 @@ export const api = {
 
         if (method === PaymentMethod.NET_30) {
           const users = db.getUsers();
-          db.setUsers(users.map((u: any) => u.id === shopOwnerId ? { ...u, creditUsed: (u.creditUsed || 0) + total } : u));
+          db.setUsers(users.map((u) => u.id === shopOwnerId ? { ...u, creditUsed: (u.creditUsed || 0) + total } : u));
         }
 
         return newOrder;
       });
     },
-    settleInvoice: async (orderId: string) => {
+    settleInvoice: async (orderId) => {
       return request(`/orders/${orderId}/settle`, { method: 'PATCH' }, () => {
         const orders = db.getOrders();
-        const order = orders.find((o: any) => o.id === orderId);
+        const order = orders.find((o) => o.id === orderId);
         if (order) {
           order.paymentStatus = PaymentStatus.PAID;
           db.setOrders([...orders]);
           const users = db.getUsers();
-          const user = users.find((u: any) => u.id === order.shopOwnerId);
+          const user = users.find((u) => u.id === order.shopOwnerId);
           if (user) {
             user.creditUsed = Math.max(0, user.creditUsed - order.totalAmount);
             db.setUsers([...users]);
@@ -184,23 +210,23 @@ export const api = {
         return order;
       });
     },
-    getByUser: async (userId: string, role: string) => {
+    getByUser: async (userId, role) => {
       return request('/orders/myorders', {}, () => {
         const orders = db.getOrders();
         if (role === UserRole.ADMIN) return orders;
-        if (role === UserRole.MANUFACTURER) return orders.filter((o: any) => o.manufacturerId === userId);
-        return orders.filter((o: any) => o.shopOwnerId === userId);
+        if (role === UserRole.MANUFACTURER) return orders.filter((o) => o.manufacturerId === userId);
+        return orders.filter((o) => o.shopOwnerId === userId);
       });
     },
-    updateStatus: async (orderId: string, status: string, logistics?: any) => {
+    updateStatus: async (orderId, status, logistics) => {
       return request(`/orders/${orderId}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status, ...logistics })
       }, () => {
         const orders = db.getOrders();
-        const updated = orders.map((o: any) => o.id === orderId ? { ...o, status, ...logistics } : o);
+        const updated = orders.map((o) => o.id === orderId ? { ...o, status, ...logistics } : o);
         db.setOrders(updated);
-        return updated.find((o: any) => o.id === orderId);
+        return updated.find((o) => o.id === orderId);
       });
     }
   },
@@ -209,14 +235,14 @@ export const api = {
     getAll: async () => {
       return request('/products', {}, () => db.getProducts());
     },
-    getByManufacturer: async (id: string) => {
+    getByManufacturer: async (id) => {
       return request(`/products/manufacturer/${id}`, {}, () => {
-        return db.getProducts().filter((p: any) => p.manufacturerId === id);
+        return db.getProducts().filter((p) => p.manufacturerId === id);
       });
     },
-    getReviews: async (pid: string) => {
+    getReviews: async (pid) => {
       return request(`/products/${pid}/reviews`, {}, () => {
-        return db.getReviews().filter((r: any) => r.productId === pid);
+        return db.getReviews().filter((r) => r.productId === pid);
       });
     }
   },
@@ -226,43 +252,43 @@ export const api = {
       return request('/admin/users', {}, () => db.getUsers());
     },
     getPendingUsers: async () => {
-      return request('/admin/users/pending', {}, () => db.getUsers().filter((u: any) => !u.isApproved));
+      return request('/admin/users/pending', {}, () => db.getUsers().filter((u) => !u.isApproved));
     },
     getSettings: async () => {
       return request('/admin/settings', {}, () => db.getSettings());
     },
-    updateSettings: async (settings: any) => {
+    updateSettings: async (settings) => {
       return request('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify(settings)
       }, () => db.setSettings(settings));
     },
-    approveUser: async (userId: string) => {
+    approveUser: async (userId) => {
       return request(`/admin/users/${userId}/approve`, { method: 'PATCH' }, () => {
         const users = db.getUsers();
-        const updated = users.map((u: any) => u.id === userId ? { ...u, isApproved: true } : u);
+        const updated = users.map((u) => u.id === userId ? { ...u, isApproved: true } : u);
         db.setUsers(updated);
       });
     },
-    rejectUser: async (userId: string) => {
+    rejectUser: async (userId) => {
       return request(`/admin/users/${userId}/reject`, { method: 'PATCH' }, () => {
         const users = db.getUsers();
-        const updated = users.map((u: any) => u.id === userId ? { ...u, isApproved: false, isRejected: true } : u);
+        const updated = users.map((u) => u.id === userId ? { ...u, isApproved: false, isRejected: true } : u);
         db.setUsers(updated);
       });
     }
   },
 
   users: {
-    getPartnerDetails: async (id: string) => {
+    getPartnerDetails: async (id) => {
       return request(`/admin/users/${id}`, {}, () => {
-        return db.getUsers().find((u: any) => u.id === id);
+        return db.getUsers().find((u) => u.id === id);
       });
     }
   },
 
   ai: {
-    predictDemand: async (manufacturerId: string) => {
+    predictDemand: async (manufacturerId) => {
       try {
         const apiKey = process.env.API_KEY;
         if (!apiKey) throw new Error("Missing API Key");
@@ -276,7 +302,7 @@ export const api = {
         return "AI forecast offline. Current logistics data suggests strong quarterly growth.";
       }
     },
-    getRecommendations: async (userId: string) => {
+    getRecommendations: async (userId) => {
       try {
         const apiKey = process.env.API_KEY;
         if (!apiKey) throw new Error("Missing API Key");

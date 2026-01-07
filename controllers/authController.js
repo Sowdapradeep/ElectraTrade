@@ -22,10 +22,17 @@ exports.registerUser = async (req, res) => {
 
   if (user) {
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        companyName: user.companyName,
+        address: user.address,
+        isApproved: user.isApproved,
+        creditLimit: user.creditLimit,
+        creditUsed: user.creditUsed
+      },
       token: generateToken(user._id),
     });
   } else {
@@ -42,14 +49,17 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Account pending administrator approval' });
     }
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      companyName: user.companyName,
-      address: user.address,
-      creditLimit: user.creditLimit,
-      creditUsed: user.creditUsed,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        companyName: user.companyName,
+        address: user.address,
+        isApproved: user.isApproved,
+        creditLimit: user.creditLimit,
+        creditUsed: user.creditUsed
+      },
       token: generateToken(user._id),
     });
   } else {
@@ -73,7 +83,7 @@ exports.updateUserProfile = async (req, res) => {
     user.companyName = req.body.companyName || user.companyName;
     user.address = req.body.address || user.address;
     user.gstNumber = req.body.gstNumber || user.gstNumber;
-    
+
     const updatedUser = await user.save();
     res.json(updatedUser);
   } else {

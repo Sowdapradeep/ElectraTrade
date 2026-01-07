@@ -4,21 +4,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { Icons, APP_NAME } from '../constants';
 
-const Login: React.FC = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      await login(email);
-      navigate('/');
-    } catch (err: any) {
+      const session = await login(email);
+      const user = session.user;
+
+      if (user.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (user.role === 'MANUFACTURER') {
+        navigate('/'); // Dashboard is at root for manufacturers
+      } else {
+        navigate('/catalog');
+      }
+    } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);

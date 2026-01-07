@@ -17,16 +17,16 @@ import AdminPanel from './pages/AdminPanel';
 import ManufacturerProfile from './pages/ManufacturerProfile';
 import ProfilePage from './pages/ProfilePage';
 
-const AuthContext = createContext<any>(null);
+const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-const CartContext = createContext<any>(null);
+const CartContext = createContext(null);
 export const useCart = () => useContext(CartContext);
 
-const CatalogContext = createContext<any>(null);
+const CatalogContext = createContext(null);
 export const useCatalog = () => useContext(CatalogContext);
 
-const Layout = ({ children }: { children?: React.ReactNode }) => {
+const Layout = ({ children }) => {
   const { auth, logout } = useAuth();
   const { cart } = useCart();
   const { search, setSearch, selectedCategory, setSelectedCategory } = useCatalog();
@@ -42,18 +42,16 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <header className={`bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm transition-all duration-300 ${
-        isManufacturer ? 'border-t-4 border-t-slate-800' : 
-        isAdmin ? 'border-t-4 border-t-indigo-600' : 
-        'border-t-4 border-t-blue-600'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-16 gap-6">
+      <header className={`bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm transition-all duration-300 ${isManufacturer ? 'border-t-4 border-t-slate-800' :
+        isAdmin ? 'border-t-4 border-t-indigo-600' :
+          'border-t-4 border-t-blue-600'
+        }`}>
+        <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center h-16 gap-6">
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-            <div className={`p-1.5 rounded-lg transition-colors ${
-              isManufacturer ? 'bg-slate-800 text-white' : 
-              isAdmin ? 'bg-indigo-600 text-white' : 
-              'bg-blue-600 text-white'
-            }`}>
+            <div className={`p-1.5 rounded-lg transition-colors ${isManufacturer ? 'bg-slate-800 text-white' :
+              isAdmin ? 'bg-indigo-600 text-white' :
+                'bg-blue-600 text-white'
+              }`}>
               <Icons.Box className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
@@ -79,7 +77,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-2 border-transparent rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-sm font-medium"
               />
               <svg className="w-5 h-5 absolute left-3 top-2.5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
           )}
@@ -123,7 +121,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
                   <span className="text-sm font-black text-slate-900 leading-none">{auth.user.companyName}</span>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-1">My Account</span>
                 </Link>
-                <button 
+                <button
                   onClick={() => { logout(); navigate('/login'); }}
                   className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                   title="Logout"
@@ -140,46 +138,51 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           </div>
         </div>
 
-        {showProcurementTools && (
-          <div className="bg-slate-50 border-t border-slate-200 overflow-x-auto no-scrollbar scroll-smooth">
-            <div className="max-w-7xl mx-auto px-4 flex items-center h-11 gap-2">
-              <button 
-                onClick={() => {
-                  setSelectedCategory('All');
-                  if (location.pathname !== '/') navigate('/');
-                }}
-                className={`px-5 h-full text-[10px] font-black uppercase tracking-[0.15em] transition-all border-b-2 whitespace-nowrap flex items-center ${
-                  selectedCategory === 'All' 
-                  ? 'border-blue-600 text-blue-600 bg-white shadow-[0_4px_0_-2px_rgba(37,99,235,1)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                All Components
-              </button>
-              {CATEGORIES.map(c => (
-                <button 
-                  key={c}
-                  onClick={() => {
-                    setSelectedCategory(c);
-                    if (location.pathname !== '/') navigate('/');
-                  }}
-                  className={`px-5 h-full text-[10px] font-black uppercase tracking-[0.15em] transition-all border-b-2 whitespace-nowrap flex items-center ${
-                    selectedCategory === c 
-                    ? 'border-blue-600 text-blue-600 bg-white shadow-[0_4px_0_-2px_rgba(37,99,235,1)]' 
-                    : 'border-transparent text-slate-400 hover:text-slate-900 hover:bg-slate-100'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
       </header>
 
-      <main className="flex-1">
-        {children}
-      </main>
+      {showProcurementTools && (
+        <div className="bg-white border-b border-slate-200 sticky top-16 z-40 overflow-x-auto no-scrollbar">
+          <div className="w-full px-4 sm:px-6 lg:px-8 h-9 flex items-center gap-4 min-w-max">
+            <button
+              onClick={() => {
+                setSelectedCategory('All');
+                if (location.pathname !== '/') navigate('/');
+              }}
+              className={`text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 flex-shrink-0 ${selectedCategory === 'All'
+                ? 'text-blue-600'
+                : 'text-slate-500 hover:text-slate-900'
+                }`}
+            >
+              All Components
+            </button>
+            <div className="h-3 w-px bg-slate-200 flex-shrink-0"></div>
+            {CATEGORIES.map(c => (
+              <button
+                key={c}
+                onClick={() => {
+                  setSelectedCategory(c);
+                  if (location.pathname !== '/') navigate('/');
+                }}
+                className={`text-[10px] font-black uppercase tracking-widest transition-colors flex-shrink-0 relative group ${selectedCategory === c
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
+                  }`}
+              >
+                {c}
+                <span className={`absolute -bottom-3 left-0 w-full h-0.5 bg-blue-600 transition-transform origin-left ${selectedCategory === c ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
 
       <footer className="bg-slate-950 text-slate-400 py-20">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -219,10 +222,10 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
             </p>
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:bg-slate-800 cursor-pointer transition-colors">
-                 <Icons.Users className="w-5 h-5" />
+                <Icons.Users className="w-5 h-5" />
               </div>
               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center hover:bg-slate-800 cursor-pointer transition-colors">
-                 <Icons.History className="w-5 h-5" />
+                <Icons.History className="w-5 h-5" />
               </div>
             </div>
           </div>
@@ -251,9 +254,10 @@ const App = () => {
     }
   }, []);
 
-  const login = async (email: string) => {
+  const login = async (email) => {
     const session = await api.auth.login(email);
     setAuth({ user: session.user, token: session.token, loading: false });
+    return session;
   };
 
   const logout = () => {
@@ -262,16 +266,16 @@ const App = () => {
     setCart([]);
   };
 
-  const register = async (data: any) => {
+  const register = async (data) => {
     await api.auth.register(data);
   };
 
-  const addToCart = (item: any) => {
-    setCart((prev: any[]) => {
+  const addToCart = (item) => {
+    setCart((prev) => {
       const existing = prev.find(i => i.productId === item.productId);
       if (existing) {
-        return prev.map(i => i.productId === item.productId 
-          ? { ...i, quantity: i.quantity + item.quantity } 
+        return prev.map(i => i.productId === item.productId
+          ? { ...i, quantity: i.quantity + item.quantity }
           : i
         );
       }
@@ -279,10 +283,10 @@ const App = () => {
     });
   };
 
-  const removeFromCart = (pid: string) => setCart((prev: any[]) => prev.filter(i => i.productId !== pid));
+  const removeFromCart = (pid) => setCart((prev) => prev.filter(i => i.productId !== pid));
   const clearCart = () => setCart([]);
-  const updateQuantity = (pid: string, qty: number) => {
-    setCart((prev: any[]) => prev.map(i => i.productId === pid ? { ...i, quantity: Math.max(1, qty) } : i));
+  const updateQuantity = (pid, qty) => {
+    setCart((prev) => prev.map(i => i.productId === pid ? { ...i, quantity: Math.max(1, qty) } : i));
   };
 
   if (auth.loading) return (
@@ -301,8 +305,8 @@ const App = () => {
               <Routes>
                 <Route path="/" element={
                   auth.user?.role === UserRole.MANUFACTURER ? <ManufacturerDashboard /> :
-                  auth.user?.role === UserRole.ADMIN ? <AdminPanel /> :
-                  <ShopCatalog />
+                    auth.user?.role === UserRole.ADMIN ? <AdminPanel /> :
+                      <ShopCatalog />
                 } />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

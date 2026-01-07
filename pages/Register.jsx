@@ -5,12 +5,12 @@ import { useAuth } from '../App';
 import { UserRole } from '../types';
 import { Icons, APP_NAME } from '../constants';
 
-const Register: React.FC = () => {
+const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     // Fix: cast the initial value as any to satisfy compiler
-    role: UserRole.SHOP_OWNER as any,
+    role: UserRole.SHOP_OWNER,
     companyName: '',
     address: ''
   });
@@ -19,14 +19,14 @@ const Register: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await register(formData);
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
-    } catch (err: any) {
+    } catch (err) {
       alert(err.message);
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ const Register: React.FC = () => {
             <select
               value={formData.role}
               // Fix: cast e.target.value as any to resolve "UserRole refers to a value" type error
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               className="block w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
             >
               <option value={UserRole.SHOP_OWNER}>Electronics Shop Owner (Buyer)</option>

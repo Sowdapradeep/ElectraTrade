@@ -95,15 +95,15 @@ export const initializeDB = () => {
 
 export const db = {
   getUsers: () => JSON.parse(localStorage.getItem(DB_KEYS.USERS) || '[]'),
-  setUsers: (users: any) => localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users)),
+  setUsers: (users) => localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users)),
   getProducts: () => JSON.parse(localStorage.getItem(DB_KEYS.PRODUCTS) || '[]'),
-  setProducts: (products: any) => localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products)),
+  setProducts: (products) => localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products)),
   getOrders: () => JSON.parse(localStorage.getItem(DB_KEYS.ORDERS) || '[]'),
-  setOrders: (orders: any) => localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders)),
+  setOrders: (orders) => localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders)),
   getReviews: () => JSON.parse(localStorage.getItem(DB_KEYS.REVIEWS) || '[]'),
-  setReviews: (reviews: any) => localStorage.setItem(DB_KEYS.REVIEWS, JSON.stringify(reviews)),
+  setReviews: (reviews) => localStorage.setItem(DB_KEYS.REVIEWS, JSON.stringify(reviews)),
   getSettings: () => JSON.parse(localStorage.getItem(DB_KEYS.SETTINGS) || '{}'),
-  setSettings: (settings: any) => localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(settings)),
+  setSettings: (settings) => localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(settings)),
   getSession: () => JSON.parse(localStorage.getItem(DB_KEYS.CURRENT_USER) || 'null'),
-  setSession: (session: any) => session ? localStorage.setItem(DB_KEYS.CURRENT_USER, JSON.stringify(session)) : localStorage.removeItem(DB_KEYS.CURRENT_USER)
+  setSession: (session) => session ? localStorage.setItem(DB_KEYS.CURRENT_USER, JSON.stringify(session)) : localStorage.removeItem(DB_KEYS.CURRENT_USER)
 };
